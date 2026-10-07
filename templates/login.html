@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}Student Login — {{ settings.election_title }}{% endblock %}
+
+{% block content %}
+<!-- Countdown Banner -->
+{% if settings and settings.end_time %}
+<div class="countdown-banner" id="countdown-banner">
+  <div class="countdown-label">Voting closes in</div>
+  <div id="countdown-display">
+    <div class="countdown-units" id="cd-timer">
+      <div class="countdown-unit">
+        <span id="cd-days">--</span>
+        <span class="unit-label">Days</span>
+      </div>
+      <span class="countdown-sep">:</span>
+      <div class="countdown-unit">
+        <span id="cd-hours">--</span>
+        <span class="unit-label">Hours</span>
+      </div>
+      <span class="countdown-sep">:</span>
+      <div class="countdown-unit">
+        <span id="cd-mins">--</span>
+        <span class="unit-label">Mins</span>
+      </div>
+      <span class="countdown-sep">:</span>
+      <div class="countdown-unit">
+        <span id="cd-secs">--</span>
+        <span class="unit-label">Secs</span>
+      </div>
+    </div>
+    <div id="cd-closed" class="countdown-closed" style="display:none;">
+      <i class="bi bi-lock-fill me-2"></i>Voting has closed
+    </div>
+  </div>
+  <!-- Hidden target for JS -->
+  <div id="countdown-target" data-endtime="{{ settings.end_time }}" style="display:none;"></div>
+</div>
+{% endif %}
+
+<div class="login-wrapper">
+  <div class="login-card">
+    <!-- Header -->
+    <div class="login-header">
+      <div class="login-logo">
+        <i class="bi bi-person-badge"></i>
+      </div>
+      <h2>Student Login</h2>
+      <p>{{ settings.election_title if settings else 'Campus Delegate Election' }}</p>
+    </div>
+
+    <!-- Form Body -->
+    <div class="login-body">
+      <form method="POST" action="{{ url_for('login') }}">
+        <div class="mb-4">
+          <label class="cv-label" for="student_id">
+            <i class="bi bi-person-vcard me-1"></i>Student ID
+          </label>
+          <input type="text"
+                 id="student_id"
+                 name="student_id"
+                 class="cv-input"
+                 placeholder="e.g. CT/2024/001"
+                 required
+                 autocomplete="username" />
+        </div>
+
+        <div class="mb-4">
+          <label class="cv-label" for="password">
+            <i class="bi bi-key me-1"></i>Password
+          </label>
+          <div class="position-relative">
+            <input type="password"
+                   id="password"
+                   name="password"
+                   class="cv-input"
+                   placeholder="Enter your password"
+                   required
+                   autocomplete="current-password"
+                   style="padding-right: 3rem;" />
+            <button type="button"
+                    onclick="togglePwd()"
+                    class="btn btn-sm position-absolute end-0 top-50 translate-middle-y me-2 border-0 bg-transparent text-muted">
+              <i class="bi bi-eye" id="pwd-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        {% if settings and not settings.voting_open %}
+          <div class="warning-box mb-3">
+            <i class="bi bi-lock-fill text-warning"></i>
+            <div>Voting is currently <strong>closed</strong>. Contact your administrator for assistance.</div>
+          </div>
+        {% endif %}
+
+        <button type="submit" class="btn-cv-primary w-100 py-3 mb-3" style="font-size:1rem;">
+          <i class="bi bi-box-arrow-in-right me-2"></i>Login & Vote
+        </button>
+      </form>
+
+      <hr class="my-3" />
+      <div class="text-center">
+        <small class="text-muted">
+          Administrator?
+          <a href="{{ url_for('admin_login') }}" class="text-decoration-none fw-semibold"
+             style="color: var(--primary-light);">
+            Admin Login →
+          </a>
+        </small>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function togglePwd() {
+  const input = document.getElementById('password');
+  const eye   = document.getElementById('pwd-eye');
+  if (input.type === 'password') {
+    input.type = 'text';
+    eye.className = 'bi bi-eye-slash';
+  } else {
+    input.type = 'password';
+    eye.className = 'bi bi-eye';
+  }
+}
+</script>
+{% endblock %}

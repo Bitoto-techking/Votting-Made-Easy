@@ -1,0 +1,154 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Settings — Admin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h2><i class="bi bi-gear me-2" style="color:var(--accent-dark);"></i>Election Settings</h2>
+  <p>Configure the election title, voting window, and open/close state.</p>
+</div>
+
+<div class="row g-4 justify-content-center">
+  <div class="col-lg-7">
+    <div class="form-section">
+      <h5><i class="bi bi-pencil-square me-2"></i>Update Settings</h5>
+      <form method="POST" action="{{ url_for('admin_settings') }}">
+
+        <!-- Election Title -->
+        <div class="mb-4">
+          <label class="cv-label" for="election_title">
+            <i class="bi bi-megaphone me-1"></i>Election Title
+          </label>
+          <input type="text"
+                 id="election_title"
+                 name="election_title"
+                 class="cv-input"
+                 value="{{ settings.election_title if settings else '' }}"
+                 placeholder="e.g. Computer Technology Delegate Election"
+                 required />
+        </div>
+
+        <!-- Start Time -->
+        <div class="mb-4">
+          <label class="cv-label" for="start_time">
+            <i class="bi bi-calendar-check me-1"></i>Voting Start Time
+          </label>
+          <input type="datetime-local"
+                 id="start_time"
+                 name="start_time"
+                 class="cv-input"
+                 value="{{ settings.start_time.strftime('%Y-%m-%dT%H:%M') if settings and settings.start_time else '' }}" />
+          <div class="form-text">Leave blank to allow voting any time (when open).</div>
+        </div>
+
+        <!-- End Time -->
+        <div class="mb-4">
+          <label class="cv-label" for="end_time">
+            <i class="bi bi-calendar-x me-1"></i>Voting End Time
+          </label>
+          <input type="datetime-local"
+                 id="end_time"
+                 name="end_time"
+                 class="cv-input"
+                 value="{{ settings.end_time.strftime('%Y-%m-%dT%H:%M') if settings and settings.end_time else '' }}" />
+          <div class="form-text">Leave blank for no deadline.</div>
+        </div>
+
+        <!-- Toggle voting open -->
+        <div class="mb-4">
+          <label class="cv-label"><i class="bi bi-toggle-on me-1"></i>Voting Status</label>
+          <div class="d-flex gap-3 align-items-center">
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="voting_open" id="vOpen" value="1"
+                     {% if settings and settings.voting_open %}checked{% endif %} />
+              <label class="form-check-label text-success fw-semibold" for="vOpen">
+                <i class="bi bi-unlock me-1"></i>Open
+              </label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="voting_open" id="vClosed" value="0"
+                     {% if not settings or not settings.voting_open %}checked{% endif %} />
+              <label class="form-check-label text-danger fw-semibold" for="vClosed">
+                <i class="bi bi-lock me-1"></i>Closed
+              </label>
+            </div>
+          </div>
+          <div class="form-text mt-1">
+            "Closed" overrides all time settings and immediately blocks voting.
+          </div>
+        </div>
+
+        <button type="submit" class="btn-cv-primary px-5">
+          <i class="bi bi-save me-2"></i>Save Settings
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Current settings preview -->
+  <div class="col-lg-4">
+    <div class="form-section">
+      <h5><i class="bi bi-eye me-2"></i>Current Configuration</h5>
+      <dl class="row mb-0" style="font-size:.9rem;">
+        <dt class="col-5 text-muted">Title</dt>
+        <dd class="col-7 fw-semibold">{{ settings.election_title if settings else '—' }}</dd>
+
+        <dt class="col-5 text-muted">Status</dt>
+        <dd class="col-7">
+          {% if settings and settings.voting_open %}
+            <span class="badge bg-success">Open</span>
+          {% else %}
+            <span class="badge bg-danger">Closed</span>
+          {% endif %}
+        </dd>
+
+        <dt class="col-5 text-muted">Start</dt>
+        <dd class="col-7">
+          {{ settings.start_time.strftime('%d %b %Y %H:%M') if settings and settings.start_time else '—' }}
+        </dd>
+
+        <dt class="col-5 text-muted">End</dt>
+        <dd class="col-7">
+          {{ settings.end_time.strftime('%d %b %Y %H:%M') if settings and settings.end_time else '—' }}
+        </dd>
+      </dl>
+
+      {% if settings and settings.end_time %}
+      <hr />
+      <div class="text-center">
+        <div class="small text-muted mb-1">Time remaining</div>
+        <div id="cd-timer">
+          <div class="countdown-units justify-content-start flex-wrap gap-2" style="margin:0;">
+            <div class="countdown-unit" style="color:var(--primary);">
+              <span id="cd-days" style="color:var(--primary); font-size:1.2rem;">--</span>
+              <span class="unit-label" style="color:var(--text-muted);">Days</span>
+            </div>
+            <span class="countdown-sep" style="color:var(--primary); font-size:1.2rem;">:</span>
+            <div class="countdown-unit">
+              <span id="cd-hours" style="color:var(--primary); font-size:1.2rem;">--</span>
+              <span class="unit-label" style="color:var(--text-muted);">Hrs</span>
+            </div>
+            <span class="countdown-sep" style="color:var(--primary); font-size:1.2rem;">:</span>
+            <div class="countdown-unit">
+              <span id="cd-mins" style="color:var(--primary); font-size:1.2rem;">--</span>
+              <span class="unit-label" style="color:var(--text-muted);">Min</span>
+            </div>
+          </div>
+        </div>
+        <div id="cd-closed" style="display:none;" class="text-danger small fw-semibold">
+          <i class="bi bi-lock-fill me-1"></i>Deadline passed
+        </div>
+        <div id="countdown-target" data-endtime="{{ settings.end_time }}" style="display:none;"></div>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="warning-box mt-3">
+      <i class="bi bi-info-circle" style="color:var(--warning); margin-top:2px;"></i>
+      <div style="font-size:.83rem;">
+        Changes take effect immediately. Closing voting prevents new votes
+        but does not erase existing ones.
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

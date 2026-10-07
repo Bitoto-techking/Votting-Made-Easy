@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}Live Results — {{ settings.election_title }}{% endblock %}
+
+{% block extra_head %}
+  <!-- Auto-refresh every 30 seconds while voting is open -->
+  {% if voting_open %}
+    <meta name="results-autorefresh" content="30" />
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+
+<!-- Countdown Banner (if voting still open) -->
+{% if voting_open and settings and settings.end_time %}
+<div class="countdown-banner" id="countdown-banner">
+  <div class="countdown-label">Voting closes in</div>
+  <div id="countdown-display">
+    <div class="countdown-units" id="cd-timer">
+      <div class="countdown-unit"><span id="cd-days">--</span><span class="unit-label">Days</span></div>
+      <span class="countdown-sep">:</span>
+      <div class="countdown-unit"><span id="cd-hours">--</span><span class="unit-label">Hours</span></div>
+      <span class="countdown-sep">:</span>
+      <div class="countdown-unit"><span id="cd-mins">--</span><span class="unit-label">Mins</span></div>
+      <span class="countdown-sep">:</span>
+      <div class="countdown-unit"><span id="cd-secs">--</span><span class="unit-label">Secs</span></div>
+    </div>
+    <div id="cd-closed" class="countdown-closed" style="display:none;">
+      <i class="bi bi-lock-fill me-2"></i>Voting has closed
+    </div>
+  </div>
+  <div id="countdown-target" data-endtime="{{ settings.end_time }}" style="display:none;"></div>
+</div>
+{% endif %}
+
+<div class="container py-4" style="max-width: 860px;">
+
+  <!-- Header -->
+  <div class="text-center mb-4">
+    <h2 class="fw-bold" style="color: var(--primary-dark);">
+      <i class="bi bi-bar-chart-line me-2" style="color:var(--accent-dark);"></i>
+      Live Results
+    </h2>
+    <p class="text-muted mb-1">{{ settings.election_title if settings else '' }}</p>
+    <span class="badge {% if voting_open %}bg-success{% else %}bg-secondary{% endif %} fs-6 px-3 py-1">
+      <i class="bi bi-{% if voting_open %}broadcast{% else %}lock{% endif %} me-1"></i>
+      {% if voting_open %}Voting Open{% else %}Voting Closed{% endif %}
+    </span>
+  </div>
+
+  <!-- Total votes card -->
+  <div class="cv-card mb-4">
+    <div class="cv-card-body d-flex align-items-center gap-3 flex-wrap">
+      <div class="stat-icon blue"><i class="bi bi-check2-all"></i></div>
+      <div>
+        <div class="stat-value">{{ total_votes }}</div>
+        <div class="stat-label">Total Votes Cast</div>
+      </div>
+      {% if voting_open %}
+        <div class="ms-auto text-muted small">
+          <i class="bi bi-arrow-repeat me-1"></i>Auto-refreshes every 30 seconds
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- No data fallback -->
+  {% if not candidates %}
+    <div class="cv-card text-center py-5">
+      <i class="bi bi-people" style="font-size: 3rem; color: var(--border);"></i>
+      <h5 class="mt-3 text-muted">No candidates found.</h5>
+    </div>
+  {% else %}
+
+  <!-- Results bars -->
+  <div>
+    {% for candidate in candidates %}
+    {% set is_winner = loop.first and total_votes > 0 %}
+    <div class="result-bar-wrap {% if is_winner %}winner{% endif %}">
+      <div class="d-flex align-items-center justify-content-between mb-1 flex-wrap gap-2">
+        <div class="d-flex align-items-center gap-2">
+          <div class="candidate-avatar-placeholder" style="width:40px;height:40px;font-size:1rem;border-width:2px;">
+            <span>{{ candidate.full_name[0] | upper }}</span>
+          </div>
+          <div>
+            <div class="fw-bold" style="color:var(--primary-dark);">
+              {{ candidate.full_name }}
+              {% if is_winner %}
+                <span class="winner-badge ms-2">
+                  <i class="bi bi-trophy-fill me-1"></i>Leading
+                </span>
+              {% endif %}
+            </div>
+            <div class="text-muted small"><i class="bi bi-award me-1"></i>{{ candidate.position }}</div>
+          </div>
+        </div>
+        <div class="text-end">
+          <div class="fw-bold" style="color:var(--primary); font-size:1.05rem;">
+            {{ candidate.vote_count }} vote{{ 's' if candidate.vote_count != 1 }}
+          </div>
+          <div class="text-muted small">{{ candidate.percentage }}%</div>
+        </div>
+      </div>
+
+      <!-- Progress bar (animated via JS) -->
+      <div class="result-bar-outer">
+        <div class="result-bar-inner"
+             data-width="{{ candidate.percentage }}"
+             style="width: 0%;"></div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% endif %}
+
+  <!-- Navigation -->
+  <div class="text-center mt-4">
+    {% if session.get('student_db_id') %}
+      <a href="{{ url_for('logout') }}" class="btn btn-outline-secondary me-2">
+        <i class="bi bi-box-arrow-right me-1"></i>Logout
+      </a>
+    {% endif %}
+    {% if session.get('admin_id') %}
+      <a href="{{ url_for('admin_dashboard') }}" class="btn-cv-primary">
+        <i class="bi bi-speedometer2 me-1"></i>Admin Dashboard
+      </a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

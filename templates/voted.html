@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Vote Recorded — {{ settings.election_title }}{% endblock %}
+
+{% block content %}
+<div class="voted-wrapper">
+  <div class="voted-card">
+    <!-- Success icon -->
+    <div class="voted-icon-ring">
+      <i class="bi bi-check-circle-fill"></i>
+    </div>
+
+    <h2 class="fw-bold mb-2" style="color: var(--primary-dark);">Vote Recorded!</h2>
+    <p class="text-muted mb-1">
+      Thank you, <strong>{{ session.get('student_name', 'Student') }}</strong>.
+    </p>
+    <p class="text-muted mb-4">
+      Your vote has been securely recorded for<br />
+      <strong>{{ settings.election_title if settings else 'the election' }}</strong>.
+    </p>
+
+    <!-- Info box -->
+    <div class="warning-box text-start mb-4" style="background:#e8f5e9; border-color:#a5d6a7;">
+      <i class="bi bi-shield-check" style="color: var(--success); margin-top:2px;"></i>
+      <div style="color: #2e7d32;">
+        Your vote is <strong>anonymous</strong> and <strong>tamper-proof</strong>.
+        No one can see who you voted for.
+      </div>
+    </div>
+
+    <div class="d-grid gap-2">
+      <a href="{{ url_for('results') }}" class="btn-cv-accent py-3" style="border-radius:8px; text-decoration:none; display:block; text-align:center; font-size:1rem;">
+        <i class="bi bi-bar-chart-line me-2"></i>View Live Results
+      </a>
+      <a href="{{ url_for('logout') }}" class="btn btn-outline-secondary py-2">
+        <i class="bi bi-box-arrow-right me-2"></i>Logout
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

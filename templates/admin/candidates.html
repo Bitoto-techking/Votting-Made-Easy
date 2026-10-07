@@ -1,0 +1,113 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Candidates — Admin{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-start flex-wrap gap-2">
+  <div>
+    <h2><i class="bi bi-people me-2" style="color:var(--accent-dark);"></i>Candidates</h2>
+    <p>{{ candidates | length }} candidate(s) registered</p>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- ── Add Candidate Form ──────────────────────────────── -->
+  <div class="col-lg-4">
+    <div class="form-section sticky-top" style="top: 1rem;">
+      <h5><i class="bi bi-person-plus me-2"></i>Add New Candidate</h5>
+      <form method="POST" action="{{ url_for('admin_add_candidate') }}" enctype="multipart/form-data">
+        <div class="mb-3">
+          <label class="cv-label">Full Name <span class="text-danger">*</span></label>
+          <input type="text" name="full_name" class="cv-input" placeholder="e.g. John Doe" required />
+        </div>
+        <div class="mb-3">
+          <label class="cv-label">Position <span class="text-danger">*</span></label>
+          <input type="text" name="position" class="cv-input" value="Delegate" required />
+        </div>
+        <div class="mb-3">
+          <label class="cv-label">Bio / Manifesto</label>
+          <textarea name="bio" class="cv-input" rows="4"
+                    placeholder="Brief candidate bio or manifesto..."
+                    style="resize:vertical;"></textarea>
+        </div>
+        <div class="mb-3">
+          <label class="cv-label">Photo <span class="text-muted small">(optional, max 5 MB)</span></label>
+          <input type="file" name="photo" class="form-control form-control-sm"
+                 accept=".png,.jpg,.jpeg,.gif,.webp" />
+          <div class="form-text">PNG, JPG, GIF or WebP</div>
+        </div>
+        <button type="submit" class="btn-cv-primary w-100">
+          <i class="bi bi-plus-circle me-2"></i>Add Candidate
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── Candidate Table ────────────────────────────────── -->
+  <div class="col-lg-8">
+    {% if not candidates %}
+      <div class="form-section text-center py-5">
+        <i class="bi bi-people" style="font-size:3rem; color:var(--border);"></i>
+        <h5 class="mt-3 text-muted">No candidates yet.</h5>
+        <p class="text-muted small">Add your first candidate using the form on the left.</p>
+      </div>
+    {% else %}
+    <div class="cv-card overflow-hidden">
+      <div class="cv-card-header">
+        <h5 class="mb-0"><i class="bi bi-table me-2"></i>Candidate List</h5>
+      </div>
+      <div class="table-responsive">
+        <table class="cv-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Candidate</th>
+              <th>Position</th>
+              <th>Votes</th>
+              <th>Photo</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in candidates %}
+            <tr>
+              <td class="text-muted small">{{ loop.index }}</td>
+              <td>
+                <div class="fw-semibold">{{ c.full_name }}</div>
+                {% if c.bio %}
+                  <div class="text-muted small" style="max-width:200px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">
+                    {{ c.bio }}
+                  </div>
+                {% endif %}
+              </td>
+              <td><span class="badge bg-primary bg-opacity-10 text-primary">{{ c.position }}</span></td>
+              <td>
+                <span class="fw-bold" style="color:var(--primary);">{{ c.vote_count }}</span>
+              </td>
+              <td>
+                {% if c.photo_filename %}
+                  <img src="{{ url_for('static', filename='img/' ~ c.photo_filename) }}"
+                       alt="photo" width="38" height="38"
+                       style="border-radius:50%; object-fit:cover; border:2px solid var(--accent);" />
+                {% else %}
+                  <span class="text-muted small">—</span>
+                {% endif %}
+              </td>
+              <td>
+                <form method="POST"
+                      action="{{ url_for('admin_delete_candidate', cid=c.id) }}"
+                      onsubmit="return confirm('Delete {{ c.full_name }}? This will also remove their votes.');">
+                  <button type="submit" class="btn-cv-danger btn btn-sm">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
